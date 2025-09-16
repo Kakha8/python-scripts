@@ -1,19 +1,36 @@
 import socket
 
-
-
-if __name__ == "__main__":
+def create_socket(ip, port):
     # Create TCP socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect to server
-    client_socket.connect(("127.0.0.1", 65432))
+    client_socket.connect((ip, port))
 
-    # Send and receive
-    client_socket.sendall(b"Hello, server!")
-    data = client_socket.recv(1024)
+    return client_socket
 
-    print("Received:", data.decode())
+def send_message(message, sock):
+    sock.sendall(message.encode())
 
-    # Close
-    client_socket.close()
+
+
+if __name__ == "__main__":
+
+
+    try:
+        while True:
+            client_socket = create_socket("127.0.0.1", 65432)
+
+            message = input("--> ")
+            if not message.strip():
+                continue  # skip empty input
+            send_message(message, client_socket)
+
+            data = client_socket.recv(1024)
+            print("Received:", data.decode())
+
+    except KeyboardInterrupt:
+        print("\nExiting client...")
+
+    finally:
+        client_socket.close()

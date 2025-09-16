@@ -2,23 +2,27 @@ import socket
 
 if __name__=="__main__":
     # Create a TCP/IP socket
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Bind to IP and port
-    server_socket.bind(("127.0.0.1", 65432))
+    try:
+        while True:
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Listen for incoming connections
-    server_socket.listen()
+            server_socket.bind(("127.0.0.1", 65432))
 
-    print("Server listening on port 65432...")
+            server_socket.listen()
 
-    # Accept a connection
-    conn, addr = server_socket.accept()
-    print("Connected by", addr)
+            print("Server listening on port 65432...")
 
-    # Exchange data
-    data = conn.recv(1024)  # Receive up to 1024 bytes
-    conn.sendall(b"Hello, client!")
+            # Accept a connection
+            conn, addr = server_socket.accept()
+            print("Connected by", addr)
 
-    # Close connection
-    conn.close()
+            # Exchange data
+            data = conn.recv(1024)  # Receive up to 1024 bytes
+            conn.sendall(b"Hello, client!")
+
+            print(data.decode())
+            # Close connection
+
+    except KeyboardInterrupt:
+        conn.close()
