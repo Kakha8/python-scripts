@@ -16,18 +16,20 @@ def send_message(message, sock):
 
 if __name__ == "__main__":
 
+    ip = input("Enter server IP: ")
+    port = input("Enter TCP port: ") #65432
 
     try:
         while True:
-            client_socket = create_socket("127.0.0.1", 65432)
+            client_socket = create_socket(ip, int(port))
 
-            message = input("--> ")
+            message = input("Client --> ")
             if not message.strip():
                 continue  # skip empty input
             send_message(message, client_socket)
 
             data = client_socket.recv(1024)
-            print("Received:", data.decode())
+            print("Server:", data.decode())
 
     except KeyboardInterrupt:
         print("\nExiting client...")
