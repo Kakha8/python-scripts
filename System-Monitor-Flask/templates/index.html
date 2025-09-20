@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>System Monitor</title>
-    <style>
-        body { font-family: monospace; background: #111; color: #0f0; }
-        #output { white-space: pre-line; font-size: 1.2em; }
-    </style>
+  <title>System Monitor</title>
 </head>
 <body>
-    <h1>Live System Usage</h1>
-    <div id="output">Waiting for data...</div>
+  <h1>Live System Usage</h1>
+  <p>CPU: <span id="cpu">--</span>%</p>
+  <p>RAM: <span id="ram">--</span>% (<span id="ram_used">--</span> GB)</p>
+  <p>Disk: <span id="disk">--</span>%</p>
 
-    <script>
-        const output = document.getElementById("output");
-        const evtSource = new EventSource("/stream");
+  <script>
+    const eventSource = new EventSource("/stream");
 
-        evtSource.onmessage = function(event) {
-            output.textContent = event.data;
-        };
-    </script>
+    eventSource.onmessage = function(event) {
+      const data = JSON.parse(event.data); // convert JSON back to object
+
+      document.getElementById("cpu").textContent = data.cpu.toFixed(1);
+      document.getElementById("ram").textContent = data.ram.toFixed(1);
+      document.getElementById("ram_used").textContent = data.ram_used.toFixed(2);
+      document.getElementById("disk").textContent = data.disk.toFixed(1);
+    };
+  </script>
 </body>
 </html>

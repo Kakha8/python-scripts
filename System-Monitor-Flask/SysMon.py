@@ -1,6 +1,7 @@
 from flask import Flask, Response, render_template
 import psutil
 import time
+import json
 
 app = Flask(__name__)
 
@@ -12,8 +13,14 @@ def stream_usage():
         ram = psutil.virtual_memory().percent
         ram_used = psutil.virtual_memory().used / (1024 ** 3)  # GB
         disk = psutil.disk_usage("C:\\").percent
-        # SSE format: "data: ...\n\n"
-        yield f"data: CPU: {cpu:.1f}% | RAM: {ram:.1f}% ({ram_used:.2f} GB) | Disk: {disk:.1f}%\n\n"
+
+
+        # Dictionary with values
+        result = {"cpu": cpu, "ram": ram, "ram_used": ram_used, "disk": disk}
+
+        # SSE requires text, so dump dict as JSON
+        yield f"data: {json.dumps(result)}\n\n"
+
         time.sleep(1)
 
 @app.route("/")
