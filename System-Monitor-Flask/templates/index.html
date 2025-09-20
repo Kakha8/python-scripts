@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Monitor</title>
+    <style>
+        body { font-family: monospace; background: #111; color: #0f0; }
+        #output { white-space: pre-line; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>Live System Usage</h1>
+    <div id="output">Waiting for data...</div>
+
+    <script>
+        const output = document.getElementById("output");
+        const evtSource = new EventSource("/stream");
+
+        evtSource.onmessage = function(event) {
+            output.textContent = event.data;
+        };
+    </script>
+</body>
+</html>

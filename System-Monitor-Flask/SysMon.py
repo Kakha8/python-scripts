@@ -1,35 +1,35 @@
-from flask import Flask, Response
+from flask import Flask, Response, render_template
 import psutil
 import time
 
 app = Flask(__name__)
 
 def stream_usage():
-    # kick browser out of buffering
-    yield ("Streaming CPU/RAM. Ctrl+C to stop.\n" + (" " * 2048) + "\n")
-
-    # warm up so first cpu_percent isn't 0.0
-    psutil.cpu_percent(interval=None)
+    psutil.cpu_percent(interval=None)  # warm up
 
     while True:
-
         cpu = psutil.cpu_percent(interval=0)
         ram = psutil.virtual_memory().percent
-        ram_used = psutil.virtual_memory().used
+        ram_used = psutil.virtual_memory().used / (1024 ** 3)  # GB
         disk = psutil.disk_usage("C:\\").percent
-        yield (f"CPU: {cpu:5.1f}% | RAM: {ram:5.1f}% | {ram_used:5.1f}% | {disk:5.1f}%\n")
-        time.sleep(1)  # 1 line/sec
+        # SSE format: "data: ...\n\n"
+        yield f"data: CPU: {cpu:.1f}% | RAM: {ram:.1f}% ({ram_used:.2f} GB) | Disk: {disk:.1f}%\n\n"
+        time.sleep(1)
 
 @app.route("/")
 def index():
+    return render_template("index.html")
+
+@app.route("/stream")
+def stream():
     return Response(
         stream_usage(),
-        mimetype="text/plain; charset=utf-8",
+        mimetype="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",   # defeats some proxies (harmless locally)
+            "X-Accel-Buffering": "no",
         },
     )
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=False, threaded=True, use_reloader=False)
+    app.run(host="127.0.0.1", port=5000, debug=True, threaded=True, use_reloader=False)
