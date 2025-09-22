@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>System Monitor</title>
 </head>
 <body>
@@ -9,17 +10,43 @@
   <p>RAM: <span id="ram">--</span>% (<span id="ram_used">--</span> GB)</p>
   <p>Disk: <span id="disk">--</span>%</p>
 
+  <h2>System Specs</h2>
+  <p>CPU: <span id="spec_cpu">--</span> (x<span id="spec_cores">--</span> <span id="spec_clock_speed">--</span>)</p>
+  <p>Architecture: <span id="spec_arch">--</span></p>
+  <p>RAM: <span id="spec_ram_cap">--</span> GB <span id="spec_ram_type"></span> <span id="spec_ram_speed"></span></p>
+  <p>Disk: <span id="spec_disk_cap">--</span> GB</p>
+
   <script>
-    const eventSource = new EventSource("/stream");
-
+    // --- Live usage ---
+    const eventSource = new EventSource("/live_usage");
     eventSource.onmessage = function(event) {
-      const data = JSON.parse(event.data); // convert JSON back to object
-
+      const data = JSON.parse(event.data);
       document.getElementById("cpu").textContent = data.cpu.toFixed(1);
       document.getElementById("ram").textContent = data.ram.toFixed(1);
       document.getElementById("ram_used").textContent = data.ram_used.toFixed(2);
       document.getElementById("disk").textContent = data.disk.toFixed(1);
     };
+
+    // --- Specs ---
+    fetch("/specs")
+      .then(res => res.json())
+      .then(json => {
+        const cpu = json.cpu || {};
+        const ram = json.ram || {};
+        const disk = json.disk || {};
+
+        document.getElementById("spec_cpu").textContent  = cpu.CPU ?? "Unknown";
+        document.getElementById("spec_arch").textContent = cpu.Architecture ?? "Unknown";
+        document.getElementById("spec_cores").textContent = cpu.Cores ?? "—";
+        document.getElementById("spec_clock_speed").textContent = cpu.Clock_speed ?? "—";
+
+
+        document.getElementById("spec_ram_cap").textContent = ram.ram_total ?? "—";
+        document.getElementById("spec_disk_cap").textContent = disk.disk_total ?? "—";
+
+
+      })
+      .catch(err => console.error("Failed to load specs:", err));
   </script>
 </body>
 </html>
