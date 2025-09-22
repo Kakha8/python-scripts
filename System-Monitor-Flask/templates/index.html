@@ -3,18 +3,30 @@
 <head>
   <meta charset="utf-8">
   <title>System Monitor</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+    }
+  </style>
 </head>
 <body>
   <h1>Live System Usage</h1>
   <p>CPU: <span id="cpu">--</span>%</p>
   <p>RAM: <span id="ram">--</span>% (<span id="ram_used">--</span> GB)</p>
-  <p>Disk: <span id="disk">--</span>%</p>
+  <p>Disk: <span id="disk">--</span>% (C:\\)</p>
 
   <h2>System Specs</h2>
   <p>CPU: <span id="spec_cpu">--</span> (x<span id="spec_cores">--</span> <span id="spec_clock_speed">--</span>)</p>
   <p>Architecture: <span id="spec_arch">--</span></p>
-  <p>RAM: <span id="spec_ram_cap">--</span> GB <span id="spec_ram_type"></span> <span id="spec_ram_speed"></span></p>
-  <p>Disk: <span id="spec_disk_cap">--</span> GB</p>
+  <p>RAM: <span id="spec_ram_cap">--</span> GB</p>
+
+  <h3>Disks</h3>
+  <div id="disks"></div>
 
   <script>
     // --- Live usage ---
@@ -33,18 +45,42 @@
       .then(json => {
         const cpu = json.cpu || {};
         const ram = json.ram || {};
-        const disk = json.disk || {};
+        const disks = json.disk || {};
 
+        // CPU + RAM
         document.getElementById("spec_cpu").textContent  = cpu.CPU ?? "Unknown";
         document.getElementById("spec_arch").textContent = cpu.Architecture ?? "Unknown";
         document.getElementById("spec_cores").textContent = cpu.Cores ?? "—";
         document.getElementById("spec_clock_speed").textContent = cpu.Clock_speed ?? "—";
 
-
         document.getElementById("spec_ram_cap").textContent = ram.ram_total ?? "—";
-        document.getElementById("spec_disk_cap").textContent = disk.disk_total ?? "—";
 
-
+        // --- Disks table ---
+        const disksDiv = document.getElementById("disks");
+        const table = document.createElement("table");
+        table.innerHTML = `
+          <tr>
+            <th>Device</th>
+            <th>Mountpoint</th>
+            <th>Total (GB)</th>
+            <th>Used (GB)</th>
+            <th>FSType</th>
+            <th>Options</th>
+          </tr>
+        `;
+        for (const [dev, info] of Object.entries(disks)) {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${dev}</td>
+            <td>${info.mountpoint ?? "—"}</td>
+            <td>${info.total_size?.toFixed?.(1) ?? "—"}</td>
+            <td>${info.disk_used?.toFixed?.(1) ?? "—"}</td>
+            <td>${info.fstype ?? "—"}</td>
+            <td>${info.opts ?? "—"}</td>
+          `;
+          table.appendChild(row);
+        }
+        disksDiv.appendChild(table);
       })
       .catch(err => console.error("Failed to load specs:", err));
   </script>

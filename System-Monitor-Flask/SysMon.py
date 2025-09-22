@@ -38,6 +38,24 @@ def getDiskSpecs():
     disk_total = round(disk_total, 1)
     return {"disk_total": disk_total}
 
+def getDisks():
+    disks = psutil.disk_partitions()
+    partitions = {}
+
+    for disk in disks:
+        partition = disk.device
+        disk_total = psutil.disk_usage(partition).total / (1024 ** 3)
+        disk_used = psutil.disk_usage(partition).used / (1024 ** 3)
+        partitions[partition] = {
+            "mountpoint": disk.mountpoint,
+            "total_size": disk_total,
+            "disk_used": disk_used,
+            "fstype": disk.fstype,
+            "opts": disk.opts
+        }
+
+    return partitions
+
 def stream_usage():
     psutil.cpu_percent(interval=None)  # warm up
 
@@ -76,9 +94,11 @@ def specs():
     return jsonify({
         "cpu": getCpuSpecs(),
         "ram": getRamSpecs(),
-        "disk": getDiskSpecs()
+        "disk": getDisks()
     })
+
 
 if __name__ == "__main__":
     #getCpuSpecs()
+    print(getDisks())
     app.run(host="127.0.0.1", port=5000, debug=True, threaded=True, use_reloader=False)
